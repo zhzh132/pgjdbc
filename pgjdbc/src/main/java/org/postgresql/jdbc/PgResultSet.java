@@ -17,6 +17,7 @@ import org.postgresql.core.ResultCursor;
 import org.postgresql.core.ResultHandlerBase;
 import org.postgresql.core.TypeInfo;
 import org.postgresql.core.Utils;
+import org.postgresql.util.Base64;
 import org.postgresql.util.ByteConverter;
 import org.postgresql.util.GT;
 import org.postgresql.util.HStoreConverter;
@@ -415,7 +416,13 @@ public class PgResultSet implements ResultSet, org.postgresql.PGRefCursorResultS
       return null;
     }
 
-    return makeBlob(getLong(i));
+    // TODO: add switch here
+    // return makeBlob(getLong(i));
+
+    String encoded = this.getString(i);
+    byte[] data = Base64.decode(encoded);
+    WNBlob blob = new WNBlob(data);
+    return blob;
   }
 
 

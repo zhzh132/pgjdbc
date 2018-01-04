@@ -17,6 +17,7 @@ import org.postgresql.core.TypeInfo;
 import org.postgresql.core.v3.BatchedQuery;
 import org.postgresql.largeobject.LargeObject;
 import org.postgresql.largeobject.LargeObjectManager;
+import org.postgresql.util.Base64;
 import org.postgresql.util.ByteConverter;
 import org.postgresql.util.GT;
 import org.postgresql.util.HStoreConverter;
@@ -28,6 +29,7 @@ import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
 import org.postgresql.util.ReaderInputStream;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -1141,25 +1143,59 @@ class PgPreparedStatement extends PgStatement implements PreparedStatement {
     return oid;
   }
 
+  // TODO: add switch here
+  // public void setBlob(int i, Blob x) throws SQLException {
+  // checkClosed();
+  //
+  // if (x == null) {
+  // setNull(i, Types.BLOB);
+  // return;
+  // }
+  //
+  // InputStream inStream = x.getBinaryStream();
+  // try {
+  // long oid = createBlob(i, inStream, x.length());
+  // setLong(i, oid);
+  // } finally {
+  // try {
+  // inStream.close();
+  // } catch (Exception e) {
+  // }
+  // }
+  // }
+
   public void setBlob(int i, Blob x) throws SQLException {
     checkClosed();
 
     if (x == null) {
-      setNull(i, Types.BLOB);
-      return;
-    }
-
-    InputStream inStream = x.getBinaryStream();
-    try {
-      long oid = createBlob(i, inStream, x.length());
-      setLong(i, oid);
-    } finally {
+      setString(i, null);
+    } else {
+      InputStream inStream = x.getBinaryStream();
       try {
-        inStream.close();
-      } catch (Exception e) {
+        byte[] data = toByteArray(inStream);
+        String dataStr = Base64.encodeBytes(data);
+        setString(i, dataStr);
+      } catch (IOException e) {
+        throw new SQLException(e);
+      } finally {
+        try {
+          inStream.close();
+        } catch (Exception e) {
+        }
       }
     }
   }
+
+  private byte[] toByteArray(InputStream inStream) throws IOException {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    byte[] buffer = new byte[4096];
+    int n;
+    while (-1 != (n = inStream.read(buffer))) {
+      output.write(buffer, 0, n);
+    }
+    return output.toByteArray();
+  }
+
 
   private String readerToString(Reader value, int maxLength) throws SQLException {
     try {
@@ -1481,30 +1517,57 @@ class PgPreparedStatement extends PgStatement implements PreparedStatement {
       throws SQLException {
     checkClosed();
 
+    // TODO: add switch here
+    // if (inputStream == null) {
+    // setNull(parameterIndex, Types.BLOB);
+    // return;
+    // }
+    //
+    // if (length < 0) {
+    // throw new PSQLException(GT.tr("Invalid stream length {0}.", length),
+    // PSQLState.INVALID_PARAMETER_VALUE);
+    // }
+    //
+    // long oid = createBlob(parameterIndex, inputStream, length);
+    // setLong(parameterIndex, oid);
+
+    // TODO: length is ignored
     if (inputStream == null) {
-      setNull(parameterIndex, Types.BLOB);
-      return;
+      setString(parameterIndex, null);
+    } else {
+      try {
+        byte[] data = toByteArray(inputStream);
+        String dataStr = Base64.encodeBytes(data);
+        setString(parameterIndex, dataStr);
+      } catch (IOException e) {
+        throw new SQLException(e);
+      }
     }
-
-    if (length < 0) {
-      throw new PSQLException(GT.tr("Invalid stream length {0}.", length),
-          PSQLState.INVALID_PARAMETER_VALUE);
-    }
-
-    long oid = createBlob(parameterIndex, inputStream, length);
-    setLong(parameterIndex, oid);
   }
 
   public void setBlob(int parameterIndex, InputStream inputStream) throws SQLException {
     checkClosed();
 
-    if (inputStream == null) {
-      setNull(parameterIndex, Types.BLOB);
-      return;
-    }
+    // TODO: add switch here
+    // if (inputStream == null) {
+    // setNull(parameterIndex, Types.BLOB);
+    // return;
+    // }
+    //
+    // long oid = createBlob(parameterIndex, inputStream, -1);
+    // setLong(parameterIndex, oid);
 
-    long oid = createBlob(parameterIndex, inputStream, -1);
-    setLong(parameterIndex, oid);
+    if (inputStream == null) {
+      setString(parameterIndex, null);
+    } else {
+      try {
+        byte[] data = toByteArray(inputStream);
+        String dataStr = Base64.encodeBytes(data);
+        setString(parameterIndex, dataStr);
+      } catch (IOException e) {
+        throw new SQLException(e);
+      }
+    }
   }
 
   public void setNClob(int parameterIndex, Reader reader, long length) throws SQLException {

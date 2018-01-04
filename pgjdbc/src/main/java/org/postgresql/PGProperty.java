@@ -411,7 +411,9 @@ public enum PGProperty {
           + "to the database specified in the dbname parameter, "
           + "which will allow the connection to be used for logical replication "
           + "from that database. "
-          + "(backend >= 9.4)");
+          + "(backend >= 9.4)"),
+
+  STORE_BLOB_AS_TEXT("storeBlobAsText", "false", "Store Blob data as Base64 encoded text.");
 
   private String _name;
   private String _defaultValue;
