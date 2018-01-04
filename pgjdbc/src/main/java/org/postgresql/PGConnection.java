@@ -233,4 +233,9 @@ public interface PGConnection {
    * @return replication API for the current connection
    */
   PGReplicationConnection getReplicationAPI();
+
+
+  boolean isStoreBlobAsText();
+
+  void setStoreBlobAsText(boolean b);
 }

@@ -326,6 +326,8 @@ public class PgConnection implements BaseConnection {
         false);
 
     replicationConnection = PGProperty.REPLICATION.get(info) != null;
+
+    this.storeBlobAsText = PGProperty.STORE_BLOB_AS_TEXT.getBoolean(info);
   }
 
   private Set<Integer> getOidSet(String oidList) throws PSQLException {
@@ -1705,5 +1707,17 @@ public class PgConnection implements BaseConnection {
       // If composite query is given, just ignore "generated keys" arguments
     }
     return ps;
+  }
+
+  private boolean storeBlobAsText = false;
+
+  @Override
+  public boolean isStoreBlobAsText() {
+    return storeBlobAsText;
+  }
+
+  @Override
+  public void setStoreBlobAsText(boolean b) {
+    this.storeBlobAsText = b;
   }
 }

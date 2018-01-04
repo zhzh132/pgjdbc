@@ -1143,28 +1143,35 @@ class PgPreparedStatement extends PgStatement implements PreparedStatement {
     return oid;
   }
 
-  // TODO: add switch here
-  // public void setBlob(int i, Blob x) throws SQLException {
-  // checkClosed();
-  //
-  // if (x == null) {
-  // setNull(i, Types.BLOB);
-  // return;
-  // }
-  //
-  // InputStream inStream = x.getBinaryStream();
-  // try {
-  // long oid = createBlob(i, inStream, x.length());
-  // setLong(i, oid);
-  // } finally {
-  // try {
-  // inStream.close();
-  // } catch (Exception e) {
-  // }
-  // }
-  // }
-
   public void setBlob(int i, Blob x) throws SQLException {
+    if (this.connection.isStoreBlobAsText()) {
+      setBlobAsText(i, x);
+    } else {
+      _setBlob(i, x);
+    }
+  }
+
+  private void _setBlob(int i, Blob x) throws SQLException {
+    checkClosed();
+
+    if (x == null) {
+      setNull(i, Types.BLOB);
+      return;
+    }
+
+    InputStream inStream = x.getBinaryStream();
+    try {
+      long oid = createBlob(i, inStream, x.length());
+      setLong(i, oid);
+    } finally {
+      try {
+        inStream.close();
+      } catch (Exception e) {
+      }
+    }
+  }
+
+  private void setBlobAsText(int i, Blob x) throws SQLException {
     checkClosed();
 
     if (x == null) {
@@ -1515,47 +1522,50 @@ class PgPreparedStatement extends PgStatement implements PreparedStatement {
 
   public void setBlob(int parameterIndex, InputStream inputStream, long length)
       throws SQLException {
-    checkClosed();
-
-    // TODO: add switch here
-    // if (inputStream == null) {
-    // setNull(parameterIndex, Types.BLOB);
-    // return;
-    // }
-    //
-    // if (length < 0) {
-    // throw new PSQLException(GT.tr("Invalid stream length {0}.", length),
-    // PSQLState.INVALID_PARAMETER_VALUE);
-    // }
-    //
-    // long oid = createBlob(parameterIndex, inputStream, length);
-    // setLong(parameterIndex, oid);
-
-    // TODO: length is ignored
-    if (inputStream == null) {
-      setString(parameterIndex, null);
+    if (this.connection.isStoreBlobAsText()) {
+      // TODO: length is ignored
+      setBlobAsText(parameterIndex, inputStream);
     } else {
-      try {
-        byte[] data = toByteArray(inputStream);
-        String dataStr = Base64.encodeBytes(data);
-        setString(parameterIndex, dataStr);
-      } catch (IOException e) {
-        throw new SQLException(e);
-      }
+      _setBlob(parameterIndex, inputStream, length);
     }
   }
 
-  public void setBlob(int parameterIndex, InputStream inputStream) throws SQLException {
-    checkClosed();
+  private void _setBlob(int parameterIndex, InputStream inputStream, long length)
+      throws SQLException {
+    if (inputStream == null) {
+      setNull(parameterIndex, Types.BLOB);
+      return;
+    }
 
-    // TODO: add switch here
-    // if (inputStream == null) {
-    // setNull(parameterIndex, Types.BLOB);
-    // return;
-    // }
-    //
-    // long oid = createBlob(parameterIndex, inputStream, -1);
-    // setLong(parameterIndex, oid);
+    if (length < 0) {
+      throw new PSQLException(GT.tr("Invalid stream length {0}.", length),
+          PSQLState.INVALID_PARAMETER_VALUE);
+    }
+
+    long oid = createBlob(parameterIndex, inputStream, length);
+    setLong(parameterIndex, oid);
+  }
+
+  public void setBlob(int parameterIndex, InputStream inputStream) throws SQLException {
+    if (this.connection.isStoreBlobAsText()) {
+      setBlobAsText(parameterIndex, inputStream);
+    } else {
+      _setBlob(parameterIndex, inputStream);
+    }
+  }
+
+  private void _setBlob(int parameterIndex, InputStream inputStream) throws SQLException {
+    if (inputStream == null) {
+      setNull(parameterIndex, Types.BLOB);
+      return;
+    }
+
+    long oid = createBlob(parameterIndex, inputStream, -1);
+    setLong(parameterIndex, oid);
+  }
+
+  private void setBlobAsText(int parameterIndex, InputStream inputStream) throws SQLException {
+    checkClosed();
 
     if (inputStream == null) {
       setString(parameterIndex, null);

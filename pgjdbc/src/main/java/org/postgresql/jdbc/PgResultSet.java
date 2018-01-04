@@ -416,13 +416,14 @@ public class PgResultSet implements ResultSet, org.postgresql.PGRefCursorResultS
       return null;
     }
 
-    // TODO: add switch here
-    // return makeBlob(getLong(i));
-
-    String encoded = this.getString(i);
-    byte[] data = Base64.decode(encoded);
-    WNBlob blob = new WNBlob(data);
-    return blob;
+    if (this.connection.isStoreBlobAsText()) {
+      String encoded = this.getString(i);
+      byte[] data = Base64.decode(encoded);
+      WNBlob blob = new WNBlob(data);
+      return blob;
+    } else {
+      return makeBlob(getLong(i));
+    }
   }
 
 
