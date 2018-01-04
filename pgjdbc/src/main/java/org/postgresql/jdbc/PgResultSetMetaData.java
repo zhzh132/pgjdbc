@@ -166,7 +166,12 @@ public class PgResultSetMetaData implements ResultSetMetaData, PGResultSetMetaDa
    */
   public String getColumnLabel(int column) throws SQLException {
     Field field = getField(column);
-    return field.getColumnLabel();
+    if (this.connection.isColumnLableUpperCase()) {
+      return field.getColumnLabel().toUpperCase();
+    } else {
+      return field.getColumnLabel();
+    }
+
   }
 
   /*

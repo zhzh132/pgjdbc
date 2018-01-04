@@ -328,6 +328,7 @@ public class PgConnection implements BaseConnection {
     replicationConnection = PGProperty.REPLICATION.get(info) != null;
 
     this.storeBlobAsText = PGProperty.STORE_BLOB_AS_TEXT.getBoolean(info);
+    this.columnLableUpperCase = PGProperty.COLUMN_LABLE_UPPERCASE.getBoolean(info);
   }
 
   private Set<Integer> getOidSet(String oidList) throws PSQLException {
@@ -1716,8 +1717,12 @@ public class PgConnection implements BaseConnection {
     return storeBlobAsText;
   }
 
+  private boolean columnLableUpperCase = false;
+
   @Override
-  public void setStoreBlobAsText(boolean b) {
-    this.storeBlobAsText = b;
+  public boolean isColumnLableUpperCase() {
+    return columnLableUpperCase;
   }
+
+
 }

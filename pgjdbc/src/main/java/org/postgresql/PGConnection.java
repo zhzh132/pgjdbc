@@ -237,5 +237,5 @@ public interface PGConnection {
 
   boolean isStoreBlobAsText();
 
-  void setStoreBlobAsText(boolean b);
+  boolean isColumnLableUpperCase();
 }

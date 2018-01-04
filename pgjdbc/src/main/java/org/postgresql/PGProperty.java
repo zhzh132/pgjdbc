@@ -413,7 +413,8 @@ public enum PGProperty {
           + "from that database. "
           + "(backend >= 9.4)"),
 
-  STORE_BLOB_AS_TEXT("storeBlobAsText", "false", "Store Blob data as Base64 encoded text.");
+  STORE_BLOB_AS_TEXT("storeBlobAsText", "false", "Store Blob data as Base64 encoded text."),
+  COLUMN_LABLE_UPPERCASE("columnLableUpperCase", "false", "Transform column lable to upper case");
 
   private String _name;
   private String _defaultValue;
